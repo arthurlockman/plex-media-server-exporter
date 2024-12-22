@@ -12,6 +12,7 @@ module PlexMediaServerExporter
         @plex_token = ENV["PLEX_TOKEN"]
         @plex_timeout = ENV["PLEX_TIMEOUT"]&.to_i || 10
         @plex_retries_count = ENV["PLEX_RETRIES_COUNT"]&.to_i || 0
+        @plex_ssl_verify = ENV['PLEX_SSL_VERIFY'] || "true"
 
         # Metrics configs
         @metrics_prefix = ENV["METRICS_PREFIX"] || "plex"
@@ -236,6 +237,7 @@ module PlexMediaServerExporter
 
           log(method: method, url: url)
 
+          options[:ssl] = {verify_mode: OpenSSL::SSL::VERIFY_NONE} if @plex_ssl_verify != "true"
           response = HTTP
             .timeout(@plex_timeout)
             .headers(
