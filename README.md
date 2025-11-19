@@ -10,29 +10,59 @@ docker run ghcr.io/axsuul/plex-media-server-exporter
 
 Metrics endpoint is served by default via `http://localhost:9594/metrics`.
 
+### Authentication
+
+The exporter now uses Plex's official PIN-based OAuth authentication flow. On first run, if no token is found, you'll see output like:
+
+```text
+================================================================================
+PLEX AUTHENTICATION REQUIRED
+================================================================================
+
+Please visit this URL to authenticate:
+
+  https://app.plex.tv/auth#?clientID=...&code=...
+
+Waiting for authentication...
+================================================================================
+```
+
+Simply visit the URL in your browser, sign in to Plex, and authorize the app. The token will be automatically saved for future use.
+
+**Token Storage:** By default, authentication data is stored in `~/.plex_exporter_auth`. For Docker deployments, you can:
+
+* Mount a volume to persist the auth file: `-v /path/on/host:/auth`
+* Set `PLEX_AUTH_FILE=/auth/plex_auth.json` to store the token in the mounted volume
+
+**Backward Compatibility:** You can still use the `PLEX_TOKEN` environment variable if preferred. If set, it will be used instead of the PIN-based authentication flow.
+
+### Environment Variables
+
 These environment variables can be passed into the container (defaults are in parentheses):
 
 * `PORT` (`9594`)
 * `PLEX_ADDR` (`http://localhost:32400`)
-  - Plex Media Server address
-* `PLEX_TOKEN`
-  - Plex Media Server token
+  * Plex Media Server address
+* `PLEX_TOKEN` (optional)
+  * Plex Media Server token (if not set, PIN-based authentication will be used)
+* `PLEX_AUTH_FILE` (optional, `~/.plex_exporter_auth`)
+  * Path where authentication data (client ID and token) will be stored
 * `PLEX_TIMEOUT` (`10`)
-  - How long to wait for Plex Media Server to respond
+  * How long to wait for Plex Media Server to respond
 * `PLEX_RETRIES_COUNT` (`0`)
-  - How many times to retry failed Plex Media Server requests
+  * How many times to retry failed Plex Media Server requests
 * `PLEX_SSL_VERIFY` (`true`)
-  - Whether to verify the SSL certificate when connecting with HTTPS
+  * Whether to verify the SSL certificate when connecting with HTTPS
 * `METRICS_PREFIX` (`plex`)
-  - What to prefix metric names with
+  * What to prefix metric names with
 * `METRICS_MEDIA_COLLECTING_INTERVAL_SECONDS` (`300`)
-  - How often to throttle collection of media metrics which can take longer to complete depending on how large of a library you have
+  * How often to throttle collection of media metrics which can take longer to complete depending on how large of a library you have
 
 ## Metrics
 
 Served by default via `http://localhost:9594/metrics`
 
-```
+```prometheus
 # TYPE plex_up gauge
 # HELP plex_up Server heartbeat
 plex_up 1.0

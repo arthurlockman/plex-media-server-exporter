@@ -5,6 +5,7 @@ services:
     environment:
       # Can be set in .env
       - PLEX_ADDR=${PLEX_ADDR}
+      # Optional. Will use oauth-like token flow if not provided.
       - PLEX_TOKEN=${PLEX_TOKEN}
       - PLEX_TIMEOUT=${PLEX_TIMEOUT}
       - PLEX_RETRIES_COUNT=${PLEX_RETRIES_COUNT}

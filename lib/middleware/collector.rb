@@ -1,4 +1,5 @@
 require "http"
+require_relative "../plex_auth"
 
 module PlexMediaServerExporter
   module Middleware
@@ -9,7 +10,7 @@ module PlexMediaServerExporter
 
         # Plex configs
         @plex_addr = ENV["PLEX_ADDR"] || "http://localhost:32400"
-        @plex_token = ENV["PLEX_TOKEN"]
+        @plex_token = get_plex_token
         @plex_timeout = ENV["PLEX_TIMEOUT"]&.to_i || 10
         @plex_retries_count = ENV["PLEX_RETRIES_COUNT"]&.to_i || 0
         @plex_ssl_verify = ENV["PLEX_SSL_VERIFY"] || "true"
@@ -106,6 +107,19 @@ module PlexMediaServerExporter
       end
 
       private
+
+      def get_plex_token
+        # First, check if PLEX_TOKEN environment variable is set (backward compatibility)
+        if ENV["PLEX_TOKEN"]
+          log(step: "get_plex_token", source: "environment_variable")
+          return ENV["PLEX_TOKEN"]
+        end
+
+        # Use PIN-based authentication flow
+        log(step: "get_plex_token", source: "auth_flow")
+        auth = PlexMediaServerExporter::PlexAuth.new
+        auth.get_access_token
+      end
 
       def log(**labels)
         puts(labels.to_a.map { |k, v| "#{k}=#{v}" }.join(" "))
